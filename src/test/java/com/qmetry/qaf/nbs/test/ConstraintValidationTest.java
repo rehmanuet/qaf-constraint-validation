@@ -14,7 +14,7 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
 
     @BeforeSuite
     public void startUp() {
-        conn = getConnection();
+        CONN = getConnection();
     }
 
     @Test
@@ -55,7 +55,7 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
 
     @Test
     @QAFDataProvider(sqlQuery = "SELECT column_name FROM information_schema.columns WHERE data_type ='ARRAY' and table_name ='base_plan';")
-    public static void checkENUM(Map<String, String> data) throws SQLException {
+    public static void checkEnum(Map<String, String> data) throws SQLException {
         String tbl_name = "base_plan";
         String schema = "qatest";
         System.out.println("ColumnName: " + data.get("column_name"));
@@ -71,7 +71,7 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
         String tbl_name = "base_plan";
         String schema = "qatest";
         System.out.println("ColumnName: " + data.get("column_name"));
-        ResultSet result = runQuery("SELECT COUNT(*) FROM " + schema + "." + tbl_name + " WHERE ltrim(rtrim(" + data.get("column_name") + ")) = '';");
+        ResultSet result = runQuery("SELECT COUNT(*) FROM " + schema + "." + tbl_name + " WHERE ltrim(trim(" + data.get("column_name") + ")) = '';");
         Integer tl_count = Integer.valueOf(result.getString("count"));
         System.out.println(tl_count);
         // TODO Add assertion and logic to logged those id whose constraint is violated
@@ -79,7 +79,7 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
 
     @Test
     @QAFDataProvider(sqlQuery = "SELECT column_name FROM information_schema.columns WHERE table_name ='base_plan' and data_type ='boolean';")
-    public static void checkBool(Map<String, String> data) throws SQLException {
+    public static void checkBoolean(Map<String, String> data) throws SQLException {
         String tbl_name = "base_plan";
         String schema = "qatest";
         System.out.println("ColumnName: " + data.get("column_name"));
@@ -130,7 +130,7 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
 
     @AfterSuite
     public void tearDown() throws SQLException {
-        conn.close();
+        CONN.close();
         System.out.println("Closing Database connection");
     }
 }
