@@ -1,5 +1,7 @@
 package com.qmetry.qaf.nbs.test;
 
+import com.qmetry.qaf.automation.core.ConfigurationManager;
+
 import java.sql.*;
 
 public class BaseConstraintValidation {
@@ -8,20 +10,23 @@ public class BaseConstraintValidation {
 
     public static Connection getConnection() {
         if (CONN != null) return CONN;
-        // get db, user, pass from settings file
-        return getConnection("ttest");
+        String URL = ConfigurationManager.getBundle().getString("db.url");
+        String PORT = ConfigurationManager.getBundle().getString("db.port");
+        String SCHEMA = ConfigurationManager.getBundle().getString("db.schema");
+        String USER = ConfigurationManager.getBundle().getString("db.user");
+        String PASS = ConfigurationManager.getBundle().getString("db.pwd");
+        return getConnection(URL, PORT, SCHEMA, USER, PASS);
     }
 
-    private static Connection getConnection(String db_name) {
+    private static Connection getConnection(String pgurl, String port, String schema, String user, String pass) {
         try {
-            String url = "jdbc:postgresql://database-1-instance-1.cdmnlp9kk2o8.us-east-1.rds.amazonaws.com:5432/dev?user=postgres&password=HighRoads#123&ssl=false";
-//            con=DriverManager.getConnection("jdbc:mysql://localhost/"+db_name+"?user="+user_name+"&password="+password);
+
+//            String url = "jdbc:postgresql://database-1-instance-1.cdmnlp9kk2o8.us-east-1.rds.amazonaws.com:5432/dev?user=postgres&password=HighRoads#123&ssl=false";
+            String url = pgurl + ":" + port + "/" + schema + "?" + "user=" + user + "&password=" + pass + "&ssl=false";
             CONN = DriverManager.getConnection(url);
-            System.out.println(db_name);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return CONN;
     }
 
