@@ -13,24 +13,25 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
+
 import com.amazonaws.util.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.marklogic.client.DatabaseClient;
 import com.marklogic.client.DatabaseClientFactory;
 import com.marklogic.client.document.JSONDocumentManager;
-import com.marklogic.client.document.TextDocumentManager;
+
 import com.marklogic.client.io.JacksonHandle;
 import com.marklogic.client.io.SearchHandle;
-import com.marklogic.client.io.StringHandle;
 import com.marklogic.client.query.*;
 import org.json.JSONArray;
 import com.qmetry.qaf.automation.core.ConfigurationManager;
 
 
 public class BaseMLtoS3 {
-    static DatabaseClient client;
+    static DatabaseClient mlclient;
+    static S3Object s3client = null;
+    static String s3ObjectContent = null;
 
     public DatabaseClient connectML() {
         System.out.println("Connecting ML");
@@ -40,10 +41,10 @@ public class BaseMLtoS3 {
     }
 
 
-    public List<String> pageListUri(DatabaseClient client) {
+    public List<String> pageListUri() {
 
         List<String> uriList = new ArrayList<>();
-        QueryManager queryMgr = client.newQueryManager();
+        QueryManager queryMgr = mlclient.newQueryManager();
         StructuredQueryBuilder qb = new StructuredQueryBuilder();
         StructuredQueryDefinition querydef = qb.directory(1, ConfigurationManager.getBundle().getString("ml.uri"));
         SearchHandle results = queryMgr.search(querydef, new SearchHandle(), 10);
@@ -72,58 +73,23 @@ public class BaseMLtoS3 {
         return uriList;
     }
 
-    public void listUri(DatabaseClient client) {
-        QueryManager queryMgr = client.newQueryManager();
-        StructuredQueryBuilder structuredQueryBuilder = new StructuredQueryBuilder();
-        StructuredQueryDefinition query = structuredQueryBuilder.directory(0, ConfigurationManager.getBundle().getString("ml.uri"));
-        SearchHandle resultsHandle = queryMgr.search(query, new SearchHandle());
-        MatchDocumentSummary[] matches = resultsHandle.getMatchResults();
-        System.out.println(resultsHandle.getTotalResults());
-        long pageLength = resultsHandle.getPageLength();
-        System.out.println(pageLength);
-        for (MatchDocumentSummary match : matches) {
-            System.out.println("Extracted from uri: " + match.getUri());
-        }
-        client.release();
-    }
-
-    public void getCountFromML(DatabaseClient client) {
-        QueryManager queryMgr = client.newQueryManager();
+    public Integer getCountFromML() {
+        QueryManager queryMgr = mlclient.newQueryManager();
         StructuredQueryBuilder qb = new StructuredQueryBuilder();
         StructuredQueryDefinition querydef = qb.directory(true, ConfigurationManager.getBundle().getString("ml.uri"));
         SearchHandle resultsHandle = queryMgr.search(querydef, new SearchHandle());
         MatchDocumentSummary[] results = resultsHandle.getMatchResults();
         System.out.println("Total count from ML: " + resultsHandle.getTotalResults());
+        return Math.toIntExact(resultsHandle.getTotalResults());
     }
 
-    public Map<Object, Object> readDoc(DatabaseClient client, String objectURI) {
-//    public void readDoc(DatabaseClient client) {
-//        String filename = "4b00f3f5-05ad-4183-9024-e03413e0340f";
-        JSONDocumentManager docMgr = client.newJSONDocumentManager();
-        String docId = "/anthem.com/accounts/" + objectURI;
+    public Map<Object, Object> readDoc(String objectURI) {
+        JSONDocumentManager docMgr = mlclient.newJSONDocumentManager();
+        String docId = ConfigurationManager.getBundle().getString("ml.uri") + objectURI;
         JacksonHandle handle = new JacksonHandle();
         docMgr.read(docId, handle);
-//        docMgr.read(objectURI, handle);
         JsonNode node = handle.get();
         return stringToMap(node.toString());
-    }
-
-    public void createDoc(DatabaseClient client) {
-        // Make a document manager to work with text files.
-        TextDocumentManager docMgr = client.newTextDocumentManager();
-        // Define a URI value for a document.
-        String docId = "/example/text.txt";
-        // Create a handle to hold string content.
-        StringHandle handle = new StringHandle();
-        // Give the handle some content
-        handle.set("A simple text document");
-        // Write the document to the database with URI from docId
-        // and content from handle
-        docMgr.write(docId, handle);
-
-        // release the client
-        client.release();
-
     }
 
     private static String getAsString(InputStream is) throws IOException {
@@ -159,35 +125,23 @@ public class BaseMLtoS3 {
         return gson.fromJson(payload, resultType);
     }
 
-    public S3Object connectS3() {
+    public S3Object connectS3() throws IOException {
         String bucket = ConfigurationManager.getBundle().getString("ml.s3rawbucket");
-        //        String key = "highroads_ml_data/anthem.com/1617366391468/799ac3e8-3938-4848-bb3d-4a7627f0d866";
-//        count 365
-//        String key = "highroads_ml_data/anthem.com/1617178897343/799ac3e8-3938-4848-bb3d-4a7627f0d866";
-//        One Wrong Json to check the difference
         String key = ConfigurationManager.getBundle().getString("ml.s3rawdata");
         AmazonS3 s3Client = AmazonS3ClientBuilder.defaultClient();
-        S3Object o = s3Client.getObject(new GetObjectRequest(bucket, key));
+        S3Object s3_object = s3Client.getObject(new GetObjectRequest(bucket, key));
         System.out.println("Connecting S3");
-        return o;
+        s3ObjectContent = getAsString(s3_object.getObjectContent());
+        return s3_object;
     }
 
-    public void getCountFromS3Raw() throws IOException {
-        S3Object o = connectS3();
-        S3ObjectInputStream s3is = o.getObjectContent();
-        String str = getAsString(s3is);
-        System.out.println("Total count from S3: " + stringToList(str).size());
-//        for (int i = 0; i <= stringToList(str).size() - 1; i++) {
-//            System.out.println(stringToList(str).get(i).get("objectId"));
-//        }
-
+    public Integer getCountFromS3Raw() {
+        System.out.println("Total count from S3: " + stringToList(s3ObjectContent).size());
+        return stringToList(s3ObjectContent).size();
     }
 
-    public JSONArray getUriFromS3Raw() throws IOException {
-        S3Object file = connectS3();
-        S3ObjectInputStream s3is = file.getObjectContent();
-        String str = getAsString(s3is);
-        return new JSONArray(str);
+    public JSONArray getUriFromS3Raw() {
+        return new JSONArray(s3ObjectContent);
     }
 
     public void createFile() {
@@ -195,8 +149,6 @@ public class BaseMLtoS3 {
             File myObj = new File("test-results/logs.txt");
             if (myObj.createNewFile()) {
                 System.out.println("File created: " + myObj.getName());
-            } else {
-                System.out.println("File already exists.");
             }
         } catch (IOException e) {
             System.out.println("An error occurred.");
@@ -215,12 +167,10 @@ public class BaseMLtoS3 {
         }
     }
 
-    public List<String> MLObjectIDlist() throws IOException {
-//        S3Object file = connectS3();
+    public List<String> s3ObjectList(JSONArray test) {
         List<String> uriS3List = new ArrayList<>();
-        JSONArray listURI = getUriFromS3Raw();
-        for (int i = 0; i <= listURI.length() - 1; i++) {
-            uriS3List.add(listURI.getJSONObject(i).get("objectId").toString());
+        for (int i = 0; i <= test.length() - 1; i++) {
+            uriS3List.add(test.getJSONObject(i).get("objectId").toString());
         }
         return uriS3List;
     }
