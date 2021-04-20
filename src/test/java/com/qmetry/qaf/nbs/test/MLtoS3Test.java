@@ -30,6 +30,7 @@ public class MLtoS3Test extends BaseMLtoS3 {
 
     //    @Test
     public void tc_comparison() throws IOException {
+        //TODO Add Assertion mechanism
         // Create a file for Error logging
         FileWriter errorLog = writeFile();
         // S3
