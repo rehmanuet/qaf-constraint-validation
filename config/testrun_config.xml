@@ -30,9 +30,14 @@ For any inquiry or need additional information, please contact support-qaf@infos
 <!--			<class name="com.qmetry.qaf.automation.step.client.text.BDDTestFactory2"/>-->
 <!--		</classes>-->
 <!--	</test>-->
-	<test name="Constraint Validation" enabled="true">
+	<test name="Constraint Validation" enabled="false">
 		<classes>
 			<class name="com.qmetry.qaf.nbs.test.ConstraintValidationTest"/>
+		</classes>
+	</test>
+	<test name="HOP 1 Validation" enabled="true">
+		<classes>
+			<class name="com.qmetry.qaf.nbs.test.MLtoS3Test"/>
 		</classes>
 	</test>
 
