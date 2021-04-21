@@ -17,7 +17,8 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
         CONN = getConnection();
     }
 
-    @Test
+
+    // @Test
     public void checkPrimaryKeyNamingConvention() throws SQLException {
         String tbl_name = "base_plan";
         String schema = "qatest";
@@ -30,7 +31,7 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
 
     }
 
-    @Test
+    // @Test
     // TODO Figure out the logic for tbl_name and Scheme Name
     public static void checkIfPrimaryKeyExist() throws SQLException {
         String tbl_name = "base_plan";
@@ -41,7 +42,7 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
         // TODO Add assertion
     }
 
-    @Test
+//     @Test
     @QAFDataProvider(sqlQuery = "SELECT column_name FROM information_schema.columns WHERE is_nullable ='NO' and table_name ='base_plan';")
     public static void checkNotNULL(Map<String, String> data) throws SQLException {
         String tbl_name = "base_plan";
@@ -53,7 +54,7 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
         // TODO Add assertion and logic to logged those id whose constraint is violated
     }
 
-    @Test
+//    @Test
     @QAFDataProvider(sqlQuery = "SELECT column_name FROM information_schema.columns WHERE data_type ='ARRAY' and table_name ='base_plan';")
     public static void checkEnum(Map<String, String> data) throws SQLException {
         String tbl_name = "base_plan";
@@ -65,7 +66,7 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
         // TODO Add assertion and logic to logged those id whose constraint is violated
     }
 
-    @Test
+//     @Test
     @QAFDataProvider(sqlQuery = "SELECT column_name FROM information_schema.columns WHERE table_name ='base_plan' and data_type in ('character varying','text');")
     public static void checkEmptyQuotes(Map<String, String> data) throws SQLException {
         String tbl_name = "base_plan";
@@ -77,19 +78,19 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
         // TODO Add assertion and logic to logged those id whose constraint is violated
     }
 
-    @Test
+//     @Test
     @QAFDataProvider(sqlQuery = "SELECT column_name FROM information_schema.columns WHERE table_name ='base_plan' and data_type ='boolean';")
     public static void checkBoolean(Map<String, String> data) throws SQLException {
         String tbl_name = "base_plan";
         String schema = "qatest";
         System.out.println("ColumnName: " + data.get("column_name"));
-        ResultSet result = runQuery("SELECT COUNT(*) FROM " + schema + "." + tbl_name + " WHERE " + data.get("column_name") + " NOT IN (true,false,NULL) ;");
+        ResultSet result = runQuery("SELECT COUNT(*) FROM " + schema + "." + tbl_name + " WHERE " + data.get("column_name") + " NOT IN (true,false) AND "+data.get("column_name")+" is not null;");
         Integer tl_count = Integer.valueOf(result.getString("count"));
         System.out.println(tl_count);
         // TODO Add assertion and logic to logged those id whose constraint is violated
     }
 
-    @Test
+//     @Test
     public static void checkDuplicationOnPKAndUniqueKey() throws SQLException {
 
         String tbl_name = "base_plan";
@@ -102,20 +103,22 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
         System.out.println(tl_count);
         // TODO Add assertion and logic to logged those id whose constraint is violated
     }
-    @Test
+
+//     @Test
     @QAFDataProvider(sqlQuery = "SELECT column_name FROM information_schema.columns WHERE table_name ='base_plan' and data_type ='date';")
     public static void checkDate(Map<String, String> data) throws SQLException {
         String tbl_name = "base_plan";
         String schema = "qatest";
         System.out.println("ColumnName: " + data.get("column_name"));
 
-        ResultSet result = runQuery("SELECT COUNT(*) FROM " + schema + "." + tbl_name + " WHERE cast(" + data.get("column_name") + " as text) !~ '[1-2][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]$';");
+        ResultSet result = runQuery("SELECT COUNT(*) FROM " + schema + "." + tbl_name + " WHERE cast(" + data.get("column_name") + " as text) !~ '[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]$';");
         Integer tl_count = Integer.valueOf(result.getString("count"));
         System.out.println(tl_count);
         // TODO Add assertion and logic to logged those id whose constraint is violated
 
     }
-    @Test
+
+     @Test
     @QAFDataProvider(sqlQuery = "SELECT column_name FROM information_schema.columns WHERE table_name ='base_plan' and data_type ='timestamp with time zone';")
     public static void checkTimestamp(Map<String, String> data) throws SQLException {
         String tbl_name = "base_plan";
@@ -127,6 +130,20 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
         // TODO Add assertion and logic to logged those id whose constraint is violated
 
     }
+
+    //    @Test
+    @QAFDataProvider(sqlQuery = "SELECT column_name FROM information_schema.columns WHERE data_type IN ('character varying','text') and table_name ='base_plan';")
+    public static void checkNullAsStringValue(Map<String, String> data) throws SQLException {
+        String tbl_name = "base_plan";
+        String schema = "qatest";
+//        System.out.println(data.get("column_name"));
+        ResultSet result = runQuery("SELECT COUNT(*) FROM " + schema + "." + tbl_name + " WHERE " + data.get("column_name") + " ='null';");
+        int tl_count = Integer.parseInt(result.getString("count"));
+        System.out.println(data.get("column_name")+" : " + tl_count);
+        // TODO Add assertion and logic to logged those id whose constraint is violated
+    }
+
+
 
     @AfterSuite
     public void tearDown() throws SQLException {
