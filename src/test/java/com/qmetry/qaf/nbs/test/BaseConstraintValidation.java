@@ -8,6 +8,7 @@ public class BaseConstraintValidation {
     static Connection CONN = null;
 
 
+
     public static Connection getConnection() {
         if (CONN != null) return CONN;
         String URL = ConfigurationManager.getBundle().getString("db.url");

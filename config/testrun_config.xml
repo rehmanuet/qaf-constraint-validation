@@ -25,11 +25,6 @@ For any inquiry or need additional information, please contact support-qaf@infos
  
 
 <suite name="Migration Validation" verbose="0">
-<!--	<test name="BDD Test" enabled="true">-->
-<!--		<classes>-->
-<!--			<class name="com.qmetry.qaf.automation.step.client.text.BDDTestFactory2"/>-->
-<!--		</classes>-->
-<!--	</test>-->
 	<test name="Constraint Validation" enabled="true">
 		<classes>
 			<class name="com.qmetry.qaf.nbs.test.ConstraintValidationTest"/>

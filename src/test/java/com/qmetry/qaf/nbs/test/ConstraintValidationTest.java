@@ -1,6 +1,9 @@
 package com.qmetry.qaf.nbs.test;
 
+import com.qmetry.qaf.automation.step.QAFTestStep;
 import com.qmetry.qaf.automation.testng.dataprovider.QAFDataProvider;
+import com.qmetry.qaf.automation.util.Reporter;
+import com.sun.xml.internal.bind.annotation.OverrideAnnotationOf;
 import org.testng.Assert;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
@@ -15,10 +18,11 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
     @BeforeSuite
     public void startUp() {
         CONN = getConnection();
+
     }
 
 
-    // @Test
+    @Test
     public void checkPrimaryKeyNamingConvention() throws SQLException {
         String tbl_name = "base_plan";
         String schema = "qatest";
@@ -27,11 +31,12 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
         String actual_const_name = result.getString("constraint_name");
         String expected_const_name = tbl_name + "_pk_" + col_name;
         System.out.println(actual_const_name);
+        Reporter.log("Primary Key Constraint: " + actual_const_name);
         Assert.assertEquals(actual_const_name, expected_const_name);
 
     }
 
-//    @Test
+    //    @Test
     // TODO Figure out the logic for tbl_name and Scheme Name
     public static void checkIfPrimaryKeyExist() throws SQLException {
         String tbl_name = "base_plan";
@@ -43,7 +48,7 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
         // TODO Failure Case logging
     }
 
-//    @Test
+    //    @Test
     @QAFDataProvider(sqlQuery = "SELECT column_name FROM information_schema.columns WHERE is_nullable ='NO' and table_name ='base_plan' and table_schema ='qatest';")
     public static void checkNotNULL(Map<String, String> data) throws SQLException {
         String tbl_name = "base_plan";
@@ -56,7 +61,7 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
 
     }
 
-//    @Test
+    //    @Test
     @QAFDataProvider(sqlQuery = "SELECT column_name FROM information_schema.columns WHERE data_type ='ARRAY' and table_name ='base_plan';")
     public static void checkEnum(Map<String, String> data) throws SQLException {
         String tbl_name = "base_plan";
@@ -134,7 +139,7 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
 
     }
 
-        @Test
+    //        @Test
     @QAFDataProvider(sqlQuery = "SELECT column_name FROM information_schema.columns WHERE data_type IN ('character varying','text') and table_name ='base_plan' and table_schema ='qatest';")
     public static void checkNullAsStringValue(Map<String, String> data) throws SQLException {
         String tbl_name = "base_plan_old";
