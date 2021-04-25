@@ -150,7 +150,6 @@ public class BaseMLtoS3 {
                 System.out.println("File created: " + myObj.getName());
             }
         } catch (IOException e) {
-            System.out.println("An error occurred.");
             e.printStackTrace();
         }
     }
@@ -160,7 +159,6 @@ public class BaseMLtoS3 {
             createFile();
             return new FileWriter("test-results/logs.txt", false);
         } catch (IOException e) {
-            System.out.println("An error occurred while creating the FileWriter object.");
             e.printStackTrace();
             return null;
         }

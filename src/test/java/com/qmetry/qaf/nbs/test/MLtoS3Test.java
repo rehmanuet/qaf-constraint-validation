@@ -22,20 +22,19 @@ public class MLtoS3Test extends BaseMLtoS3 {
     }
 
     @Test
-    public void tc_count() {
+    public void countComparison() {
         Integer marklogic_count = getCountFromML();
         Integer s3_count = getCountFromS3Raw();
         Assert.assertEquals(s3_count, marklogic_count);
     }
 
-    //   @Test
-    public void tc_comparison() throws IOException {
+    @Test
+    public void dataComparison() throws IOException {
         //TODO Add Assertion mechanism
         FileWriter errorLog = writeFile();
         // S3
         JSONArray listURI = getUriFromS3Raw();
         // ML
-//
         List<String> ml_uri = mlDocumentList();
         List<String> s3_uri = s3ObjectList(listURI);
 //        System.out.println(s3_uri.size());
@@ -65,7 +64,7 @@ public class MLtoS3Test extends BaseMLtoS3 {
                 }
             }
         }
-        if (missing_objects != null) {
+        if (!missing_objects.isEmpty()) {
             errorLog.write(missing_objects.size() + " ObjectIDs not found in S3: " + missing_objects);
         }
         errorLog.close();
