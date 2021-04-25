@@ -32,12 +32,10 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
     }
 
     @Test
-    // TODO Figure out the logic for tbl_name and Scheme Name
     public static void checkIfPrimaryKeyExist() throws SQLException {
         ResultSet result = runQuery("SELECT COUNT(*) FROM information_schema.table_constraints WHERE constraint_type = 'PRIMARY KEY' AND table_name = '" + table_name + "' and table_schema = '" + schema_name + "';");
         int actual_count = Integer.parseInt(result.getString("count"));
         Assert.assertEquals(actual_count, 1);
-        // TODO Failure Case logging
     }
 
     @Test
@@ -47,8 +45,6 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
         ResultSet result = runQuery("SELECT COUNT(*) FROM " + schema_name + "." + table_name + " WHERE " + data.get("column_name") + " is null;");
         int actual_count = Integer.parseInt(result.getString("count"));
         Assert.assertEquals(actual_count, 0);
-        // TODO Add logic to logged those id whose constraint is violated
-
     }
 
     @Test
@@ -58,7 +54,7 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
         ResultSet result = runQuery("SELECT COUNT(*) FROM " + schema_name + "." + table_name + " WHERE cast(" + data.get("column_name") + " as text) !~ '^([0-9][0-9]*|\\{[0-9][0-9]*(,[0-9][0-9]*)*\\})$';");
         int actual_count = Integer.parseInt(result.getString("count"));
         Assert.assertEquals(actual_count, 0);
-        // TODO Add assertion and logic to logged those id whose constraint is violated
+
     }
 
     @Test
@@ -68,7 +64,6 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
         ResultSet result = runQuery("SELECT COUNT(*) FROM " + schema_name + "." + table_name + " WHERE ltrim(trim(" + data.get("column_name") + ")) = '';");
         int actual_count = Integer.parseInt(result.getString("count"));
         Assert.assertEquals(actual_count, 0);
-        // TODO Add logic to logged those id whose constraint is violated
     }
 
     @Test
@@ -78,7 +73,6 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
         ResultSet result = runQuery("SELECT COUNT(*) FROM " + schema_name + "." + table_name + " WHERE " + data.get("column_name") + " NOT IN (true,false) AND " + data.get("column_name") + " is not null;");
         int actual_count = Integer.parseInt(result.getString("count"));
         Assert.assertEquals(actual_count, 0);
-        // TODO Add logic to logged those id whose constraint is violated
     }
 
     @Test
@@ -89,7 +83,6 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
         ResultSet result = runQuery("SELECT count(*) FROM ( SELECT COUNT(*) OVER (PARTITION BY " + col_name + ") AS cnt FROM " + schema_name + "." + table_name + ") AS t WHERE t.cnt > 1");
         int actual_count = Integer.parseInt(result.getString("count"));
         Assert.assertEquals(actual_count, 0);
-        // TODO Add assertion and logic to logged those id whose constraint is violated
     }
 
     @Test
@@ -99,8 +92,6 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
         ResultSet result = runQuery("SELECT COUNT(*) FROM " + schema_name + "." + table_name + " WHERE cast(" + data.get("column_name") + " as text) !~ '[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]$';");
         int actual_count = Integer.parseInt(result.getString("count"));
         Assert.assertEquals(actual_count, 0);
-        // TODO logic to logged those id whose constraint is violated
-
     }
 
     @Test
@@ -110,7 +101,6 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
         ResultSet result = runQuery("SELECT COUNT(*) FROM " + schema_name + "." + table_name + " WHERE cast(" + data.get("column_name") + " as text) !~ '(\\d{4}-\\d{2}-\\d{2}) +(\\d{2}:\\d{2}:\\d{2}\\+\\d{2})';");
         int actual_count = Integer.parseInt(result.getString("count"));
         Assert.assertEquals(actual_count, 0);
-        // TODO Add logic to logged those id whose constraint is violated
     }
 
     @Test
@@ -120,7 +110,6 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
         ResultSet result = runQuery("SELECT COUNT(*) FROM " + schema_name + "." + table_name + " WHERE " + data.get("column_name") + " ='null';");
         int actual_count = Integer.parseInt(result.getString("count"));
         Assert.assertEquals(actual_count, 0);
-        // TODO Add assertion and logic to logged those id whose constraint is violated
     }
 
     @AfterSuite
