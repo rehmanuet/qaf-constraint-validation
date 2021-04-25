@@ -19,6 +19,7 @@ import com.amazonaws.util.StringUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.marklogic.client.DatabaseClient;
 import com.marklogic.client.DatabaseClientFactory;
+import com.marklogic.client.datamovement.*;
 import com.marklogic.client.document.JSONDocumentManager;
 
 import com.marklogic.client.io.JacksonHandle;
@@ -36,8 +37,8 @@ public class BaseMLtoS3 {
     public DatabaseClient connectML() {
         System.out.println("Connecting ML");
         return DatabaseClientFactory.newClient(
-                ConfigurationManager.getBundle().getString("ml.host"), ConfigurationManager.getBundle().getInt("ml.port"), ConfigurationManager.getBundle().getString("ml.database"),
-                new DatabaseClientFactory.DigestAuthContext("admin", "admin"));
+                ConfigurationManager.getBundle().getString("ml.db.host"), ConfigurationManager.getBundle().getInt("ml.db.port"), ConfigurationManager.getBundle().getString("ml.db.database"),
+                new DatabaseClientFactory.DigestAuthContext(ConfigurationManager.getBundle().getString("ml.db.user"), ConfigurationManager.getBundle().getString("ml.db.pass")));
     }
 
 
@@ -74,13 +75,20 @@ public class BaseMLtoS3 {
     }
 
     public Integer getCountFromML() {
-        QueryManager queryMgr = mlclient.newQueryManager();
-        StructuredQueryBuilder qb = new StructuredQueryBuilder();
-        StructuredQueryDefinition querydef = qb.directory(true, ConfigurationManager.getBundle().getString("ml.uri"));
-        SearchHandle resultsHandle = queryMgr.search(querydef, new SearchHandle());
-        MatchDocumentSummary[] results = resultsHandle.getMatchResults();
-        System.out.println("Total count from ML: " + resultsHandle.getTotalResults());
-        return Math.toIntExact(resultsHandle.getTotalResults());
+        final DataMovementManager manager = mlclient.newDataMovementManager();
+        final StructuredQueryBuilder qb = new StructuredQueryBuilder();
+        StructuredQueryDefinition query = qb.directory(1, ConfigurationManager.getBundle().getString("ml.uri"));
+        ExportListener exportListener = new ExportListener().withConsistentSnapshot().onDocumentReady(doc -> {
+        });
+        final QueryBatcher batch = manager.newQueryBatcher(query).withBatchSize(100).withThreadCount(2)
+                .withConsistentSnapshot().onUrisReady(exportListener).onQueryFailure(Throwable::printStackTrace);
+        JobTicket ticket = manager.startJob(batch);
+        batch.awaitCompletion();
+        manager.stopJob(ticket);
+        JobReport report = manager.getJobReport(ticket);
+        System.out.println("Total count from ML: " + report.getSuccessEventsCount());
+
+        return Math.toIntExact(report.getSuccessEventsCount());
     }
 
     public Map<Object, Object> readDoc(String objectURI) {

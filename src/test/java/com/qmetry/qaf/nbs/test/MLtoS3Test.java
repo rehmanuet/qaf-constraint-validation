@@ -21,14 +21,14 @@ public class MLtoS3Test extends BaseMLtoS3 {
         s3client = connectS3();
     }
 
-    @Test
+//    @Test
     public void tc_count() {
         Integer marklogic_count = getCountFromML();
         Integer s3_count = getCountFromS3Raw();
         Assert.assertEquals(s3_count, marklogic_count);
     }
 
-    //    @Test
+        @Test
     public void tc_comparison() throws IOException {
         //TODO Add Assertion mechanism
         // Create a file for Error logging
