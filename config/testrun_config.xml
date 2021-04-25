@@ -25,12 +25,12 @@ For any inquiry or need additional information, please contact support-qaf@infos
  
 
 <suite name="Migration Validation" verbose="0">
-	<test name="Constraint Validation" enabled="false">
+	<test name="Constraint Validation" enabled="true">
 		<classes>
 			<class name="com.qmetry.qaf.nbs.test.ConstraintValidationTest"/>
 		</classes>
 	</test>
-	<test name="HOP 1 Validation" enabled="true">
+	<test name="HOP 1 Validation" enabled="false">
 		<classes>
 			<class name="com.qmetry.qaf.nbs.test.MLtoS3Test"/>
 		</classes>
