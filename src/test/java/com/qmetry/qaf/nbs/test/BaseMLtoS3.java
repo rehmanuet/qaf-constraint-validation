@@ -23,7 +23,6 @@ import com.marklogic.client.datamovement.*;
 import com.marklogic.client.document.JSONDocumentManager;
 
 import com.marklogic.client.io.JacksonHandle;
-import com.marklogic.client.io.SearchHandle;
 import com.marklogic.client.query.*;
 import org.json.JSONArray;
 import com.qmetry.qaf.automation.core.ConfigurationManager;
@@ -33,6 +32,8 @@ public class BaseMLtoS3 {
     static DatabaseClient mlclient;
     static S3Object s3client = null;
     static String s3ObjectContent = null;
+    private String fileName = null;
+
 
     public DatabaseClient connectML() {
         System.out.println("Connecting ML");
@@ -42,35 +43,26 @@ public class BaseMLtoS3 {
     }
 
 
-    public List<String> pageListUri() {
-
+    public List<String> mlDocumentList() {
         List<String> uriList = new ArrayList<>();
-        QueryManager queryMgr = mlclient.newQueryManager();
-        StructuredQueryBuilder qb = new StructuredQueryBuilder();
-        StructuredQueryDefinition querydef = qb.directory(1, ConfigurationManager.getBundle().getString("ml.uri"));
-        SearchHandle results = queryMgr.search(querydef, new SearchHandle(), 10);
-        long pageLength = results.getPageLength();
-        long totalResults = results.getTotalResults();
-//        System.out.println("totalResults: " + totalResults + " pageLength: " + pageLength);
-//        long timesToLoop = totalResults / pageLength;
-//        System.out.println(timesToLoop);
-        for (int i = 0; i < totalResults; i = (int) (i + pageLength)) {
-//            System.out.println("Printing Results from: " + (i) + " to: " + (i + pageLength));
-            results = queryMgr.search(querydef, new SearchHandle(), i + 1); // initially it was i but now i+1 due duplication error
-            MatchDocumentSummary[] summaries = results.getMatchResults();//10 results because page length is 10
-            for (MatchDocumentSummary summary : summaries) {
-                System.out.println("Extracted from URI-> " + summary.getUri());
-                uriList.add(summary.getUri().split("/")[3]);
+        final DataMovementManager manager = mlclient.newDataMovementManager();
+        final StructuredQueryBuilder qb = new StructuredQueryBuilder();
+        StructuredQueryDefinition query = qb.directory(1, ConfigurationManager.getBundle().getString("ml.uri"));
+        ExportListener exportListener = new ExportListener().withConsistentSnapshot().onDocumentReady(doc -> {
+            String[] uriParts = doc.getUri().split("/");
+            try {
+                fileName = uriParts[uriParts.length - 1];
+                uriList.add(fileName);
+
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            if (i >= 11000) { //number of URI to store/retrieve. plus 10
-                System.out.println("BREAK");
-                break;
-            }
-        }
-        //To Remove the Duplication
-        //uriList = uriList.stream().distinct().collect(Collectors.toList());
-        uriList = new ArrayList<>(uriList);
-//        client.release();
+        });
+        final QueryBatcher batch = manager.newQueryBatcher(query).withBatchSize(100).withThreadCount(2)
+                .withConsistentSnapshot().onUrisReady(exportListener).onQueryFailure(Throwable::printStackTrace);
+        JobTicket ticket = manager.startJob(batch);
+        batch.awaitCompletion();
+        manager.stopJob(ticket);
         return uriList;
     }
 
@@ -87,7 +79,6 @@ public class BaseMLtoS3 {
         manager.stopJob(ticket);
         JobReport report = manager.getJobReport(ticket);
         System.out.println("Total count from ML: " + report.getSuccessEventsCount());
-
         return Math.toIntExact(report.getSuccessEventsCount());
     }
 
@@ -194,7 +185,7 @@ public class BaseMLtoS3 {
     public List<String> differentURI(List<String> listOne, List<String> listTwo) {
         List<String> differences = new ArrayList<>(listOne);
         differences.removeAll(listTwo);
-        System.out.println("diff" + differences);
+        System.out.println("difference: " + differences);
         return differences;
     }
 }
