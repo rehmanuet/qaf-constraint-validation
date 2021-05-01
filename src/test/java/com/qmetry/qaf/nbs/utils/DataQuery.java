@@ -1,4 +1,4 @@
-package com.qmetry.qaf.nbs.steps;
+package com.qmetry.qaf.nbs.utils;
 
 public class DataQuery {
 

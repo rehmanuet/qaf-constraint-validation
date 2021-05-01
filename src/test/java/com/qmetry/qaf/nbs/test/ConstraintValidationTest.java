@@ -2,6 +2,7 @@ package com.qmetry.qaf.nbs.test;
 
 import com.qmetry.qaf.automation.testng.dataprovider.QAFDataProvider;
 import com.qmetry.qaf.automation.util.Reporter;
+import com.qmetry.qaf.nbs.utils.BaseConstraintValidation;
 import org.testng.Assert;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
@@ -11,7 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
 
-import static com.qmetry.qaf.nbs.steps.DataQuery.*;
+import static com.qmetry.qaf.nbs.utils.DataQuery.*;
 
 public class ConstraintValidationTest extends BaseConstraintValidation {
 
