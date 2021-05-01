@@ -30,10 +30,5 @@ For any inquiry or need additional information, please contact support-qaf@infos
 			<class name="com.qmetry.qaf.nbs.test.ConstraintValidationTest"/>
 		</classes>
 	</test>
-	<test name="HOP 1 Validation" enabled="false">
-		<classes>
-			<class name="com.qmetry.qaf.nbs.test.MLtoS3Test"/>
-		</classes>
-	</test>
 
 </suite>
