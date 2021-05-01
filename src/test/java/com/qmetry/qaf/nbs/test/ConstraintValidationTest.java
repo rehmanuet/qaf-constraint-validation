@@ -28,7 +28,7 @@ public class ConstraintValidationTest extends BaseConstraintValidation {
         String actual_const_name = result.getString("constraint_name");
         String expected_const_name = table_name + "_pk_" + col_name;
         System.out.println(actual_const_name);
-        Reporter.log("Primary Key Constraint: " + actual_const_name);
+        Reporter.log("Primary Key Constraint : " + actual_const_name);
         Assert.assertEquals(actual_const_name, expected_const_name);
     }
 
